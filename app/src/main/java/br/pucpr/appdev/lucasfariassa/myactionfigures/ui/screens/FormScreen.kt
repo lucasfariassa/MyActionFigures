@@ -1,5 +1,6 @@
 package br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,11 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import br.pucpr.appdev.lucasfariassa.myactionfigures.data.ActionFigure
 import coil.compose.AsyncImage
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -35,23 +38,29 @@ fun FormScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf(actionFigure?.name ?: "") }
     var work by remember { mutableStateOf(actionFigure?.work ?: "") }
     var brand by remember { mutableStateOf(actionFigure?.brand ?: "") }
     var description by remember { mutableStateOf(actionFigure?.description ?: "") }
     var purchasePrice by remember { mutableStateOf(actionFigure?.purchasePrice?.toString() ?: "") }
+    
     var imageUri by remember { mutableStateOf(actionFigure?.photoUrl?.toUri()) }
-
-    // State for the Date Picker
-    var showDatePicker by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf(actionFigure?.purchaseDate ?: Date()) }
-    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    var newImageSelected by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        imageUri = uri
+        if (uri != null) {
+            imageUri = uri
+            newImageSelected = true
+        }
     }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(actionFigure?.purchaseDate ?: Date()) }
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     val title = if (actionFigure == null) "Novo Action Figure" else "Editar Action Figure"
 
@@ -145,6 +154,14 @@ fun FormScreen(
             }
 
             Button(onClick = {
+                var persistentPhotoUrl = actionFigure?.photoUrl
+
+                if (newImageSelected) {
+                    imageUri?.let { uri ->
+                        persistentPhotoUrl = saveImageToInternalStorage(context, uri)
+                    }
+                }
+
                 val figureToSave = actionFigure?.copy(
                     name = name,
                     work = work,
@@ -152,16 +169,16 @@ fun FormScreen(
                     description = description,
                     purchasePrice = purchasePrice.toFloatOrNull() ?: 0f,
                     purchaseDate = selectedDate,
-                    photoUrl = imageUri?.toString()
+                    photoUrl = persistentPhotoUrl
                 ) ?: ActionFigure(
-                    id = System.currentTimeMillis(), // Usando timestamp como ID temporário
+                    id = 0, // Room irá gerar o ID
                     name = name,
                     work = work,
                     brand = brand,
                     description = description,
                     purchasePrice = purchasePrice.toFloatOrNull() ?: 0f,
                     purchaseDate = selectedDate,
-                    photoUrl = imageUri?.toString()
+                    photoUrl = persistentPhotoUrl
                 )
                 onSave(figureToSave)
             }) {
@@ -177,7 +194,6 @@ fun FormScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        // Corrige o problema do fuso horário adicionando o offset do timezone
                         val correctedMillis = millis + TimeZone.getDefault().getOffset(millis)
                         selectedDate = Date(correctedMillis)
                     }
@@ -194,5 +210,20 @@ fun FormScreen(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+}
+
+private fun saveImageToInternalStorage(context: Context, uri: Uri): String? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val file = File(context.filesDir, "${System.currentTimeMillis()}.jpg")
+        val outputStream = file.outputStream()
+        inputStream.copyTo(outputStream)
+        inputStream.close()
+        outputStream.close()
+        file.absolutePath
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

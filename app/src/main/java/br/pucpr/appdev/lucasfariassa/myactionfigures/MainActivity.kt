@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -16,48 +17,53 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import br.pucpr.appdev.lucasfariassa.myactionfigures.data.ActionFigure
+import br.pucpr.appdev.lucasfariassa.myactionfigures.data.AppDatabase
 import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.components.DeleteConfirmationDialog
 import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens.*
 import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.theme.MyActionFiguresTheme
+import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.viewmodels.ActionFiguresViewModel
+import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.viewmodels.ActionFiguresViewModelFactory
 
 class MainActivity : ComponentActivity() {
+    private val db by lazy { AppDatabase.getDatabase(this) }
+    private val viewModel: ActionFiguresViewModel by viewModels {
+        ActionFiguresViewModelFactory(db.actionFigureDao())
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MyActionFiguresTheme {
-                MyActionFiguresApp()
+                MyActionFiguresApp(viewModel = viewModel)
             }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@PreviewScreenSizes
 @Composable
-fun MyActionFiguresApp() {
+fun MyActionFiguresApp(viewModel: ActionFiguresViewModel) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
     var selectedActionFigure by remember { mutableStateOf<ActionFigure?>(null) }
     var editingActionFigure by remember { mutableStateOf<ActionFigure?>(null) }
     var isAddingOrEditing by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    val actionFigures = remember { mutableStateListOf<ActionFigure>() }
+    val actionFigures by viewModel.allActionFigures.collectAsState(initial = emptyList())
 
     if (isAddingOrEditing) {
         FormScreen(
             actionFigure = editingActionFigure,
             onSave = { figure ->
                 if (editingActionFigure == null) { // Adicionando
-                    actionFigures.add(figure)
+                    viewModel.insert(figure)
                 } else { // Editando
-                    val index = actionFigures.indexOfFirst { it.id == figure.id }
-                    if (index != -1) {
-                        actionFigures[index] = figure
-                    }
+                    viewModel.update(figure)
                 }
                 isAddingOrEditing = false
                 editingActionFigure = null
@@ -105,20 +111,12 @@ fun MyActionFiguresApp() {
             actionFigure = actionFigure,
             onDismiss = { selectedActionFigure = null },
             onFavoriteClick = { 
-                val index = actionFigures.indexOf(actionFigure)
-                if (index != -1) {
-                    val updatedFigure = actionFigure.copy(isFavorite = !actionFigure.isFavorite)
-                    actionFigures[index] = updatedFigure
-                    selectedActionFigure = updatedFigure
-                }
+                viewModel.update(actionFigure.copy(isFavorite = !actionFigure.isFavorite))
+                selectedActionFigure = actionFigure.copy(isFavorite = !actionFigure.isFavorite)
             },
             onPublicClick = {
-                val index = actionFigures.indexOf(actionFigure)
-                if (index != -1) {
-                    val updatedFigure = actionFigure.copy(isPublic = !actionFigure.isPublic)
-                    actionFigures[index] = updatedFigure
-                    selectedActionFigure = updatedFigure
-                }
+                viewModel.update(actionFigure.copy(isPublic = !actionFigure.isPublic))
+                selectedActionFigure = actionFigure.copy(isPublic = !actionFigure.isPublic)
             },
             onEditClick = {
                 editingActionFigure = actionFigure
@@ -134,7 +132,8 @@ fun MyActionFiguresApp() {
     if (showDeleteConfirmation) {
         DeleteConfirmationDialog(
             onConfirm = {
-                selectedActionFigure?.let { actionFigures.remove(it) }
+                selectedActionFigure?.let { viewModel.delete(it) }
+                showDeleteConfirmation = false
                 selectedActionFigure = null
             },
             onDismiss = { showDeleteConfirmation = false }

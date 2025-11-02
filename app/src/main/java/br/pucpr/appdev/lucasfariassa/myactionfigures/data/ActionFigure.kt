@@ -1,9 +1,13 @@
 package br.pucpr.appdev.lucasfariassa.myactionfigures.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.util.Date
 
+@Entity(tableName = "action_figures")
 data class ActionFigure(
-    val id: Long,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val name: String,
     val work: String,
     val brand: String,
