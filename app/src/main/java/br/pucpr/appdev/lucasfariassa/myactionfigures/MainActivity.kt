@@ -10,29 +10,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import br.pucpr.appdev.lucasfariassa.myactionfigures.data.ActionFigure
-import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens.ActionFigureDetailPopup
-import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens.HomeScreen
-import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens.MyActionFiguresScreen
-import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens.MyPublicProfileScreen
+import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.components.DeleteConfirmationDialog
+import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens.*
 import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.theme.MyActionFiguresTheme
-import java.util.Date
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,76 +35,109 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @PreviewScreenSizes
 @Composable
 fun MyActionFiguresApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
     var selectedActionFigure by remember { mutableStateOf<ActionFigure?>(null) }
+    var editingActionFigure by remember { mutableStateOf<ActionFigure?>(null) }
+    var isAddingOrEditing by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    val actionFigures = remember {
-        List(10) {
-            ActionFigure(
-                id = it.toLong(),
-                name = "Action Figure $it",
-                work = "Work $it",
-                brand = "Brand $it",
-                description = "Description $it",
-                purchasePrice = (it * 10).toFloat(),
-                purchaseDate = Date(),
-            )
-        }.toMutableStateList()
-    }
+    val actionFigures = remember { mutableStateListOf<ActionFigure>() }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
+    if (isAddingOrEditing) {
+        FormScreen(
+            actionFigure = editingActionFigure,
+            onSave = { figure ->
+                if (editingActionFigure == null) { // Adicionando
+                    actionFigures.add(figure)
+                } else { // Editando
+                    val index = actionFigures.indexOfFirst { it.id == figure.id }
+                    if (index != -1) {
+                        actionFigures[index] = figure
+                    }
+                }
+                isAddingOrEditing = false
+                editingActionFigure = null
+            },
+            onCancel = {
+                isAddingOrEditing = false
+                editingActionFigure = null
+            }
+        )
+    } else {
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                AppDestinations.entries.forEach {
+                    item(
+                        icon = { Icon(it.icon, contentDescription = it.label) },
+                        label = { Text(it.label) },
+                        selected = it == currentDestination,
+                        onClick = { currentDestination = it }
+                    )
+                }
+            }
+        ) {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                when (currentDestination) {
+                    AppDestinations.HOME -> HomeScreen(
+                        onAddActionFigure = { isAddingOrEditing = true },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                    AppDestinations.MYACTIONFIGURES -> MyActionFiguresScreen(
+                        actionFigures = actionFigures,
+                        onActionFigureClick = { selectedActionFigure = it },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                    AppDestinations.PROFILE -> MyPublicProfileScreen(
+                        actionFigures = actionFigures,
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(
-                    onAddActionFigure = { /* TODO */ },
-                    modifier = Modifier.padding(innerPadding)
-                )
-                AppDestinations.MYACTIONFIGURES -> MyActionFiguresScreen(
-                    actionFigures = actionFigures,
-                    onActionFigureClick = { selectedActionFigure = it },
-                    modifier = Modifier.padding(innerPadding)
-                )
-                AppDestinations.PROFILE -> MyPublicProfileScreen(
-                    actionFigures = actionFigures,
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
-        }
     }
 
-    selectedActionFigure?.let {
+    selectedActionFigure?.let { actionFigure ->
         ActionFigureDetailPopup(
-            actionFigure = it,
+            actionFigure = actionFigure,
             onDismiss = { selectedActionFigure = null },
             onFavoriteClick = { 
-                val index = actionFigures.indexOf(it)
-                actionFigures[index] = it.copy(isFavorite = !it.isFavorite)
-                 selectedActionFigure = actionFigures[index] // Update the selected figure to reflect the change
+                val index = actionFigures.indexOf(actionFigure)
+                if (index != -1) {
+                    val updatedFigure = actionFigure.copy(isFavorite = !actionFigure.isFavorite)
+                    actionFigures[index] = updatedFigure
+                    selectedActionFigure = updatedFigure
+                }
             },
             onPublicClick = {
-                val index = actionFigures.indexOf(it)
-                actionFigures[index] = it.copy(isPublic = !it.isPublic)
-                selectedActionFigure = actionFigures[index] // Update the selected figure to reflect the change
+                val index = actionFigures.indexOf(actionFigure)
+                if (index != -1) {
+                    val updatedFigure = actionFigure.copy(isPublic = !actionFigure.isPublic)
+                    actionFigures[index] = updatedFigure
+                    selectedActionFigure = updatedFigure
+                }
+            },
+            onEditClick = {
+                editingActionFigure = actionFigure
+                selectedActionFigure = null
+                isAddingOrEditing = true
+            },
+            onDeleteClick = {
+                showDeleteConfirmation = true
             }
+        )
+    }
+
+    if (showDeleteConfirmation) {
+        DeleteConfirmationDialog(
+            onConfirm = {
+                selectedActionFigure?.let { actionFigures.remove(it) }
+                selectedActionFigure = null
+            },
+            onDismiss = { showDeleteConfirmation = false }
         )
     }
 }

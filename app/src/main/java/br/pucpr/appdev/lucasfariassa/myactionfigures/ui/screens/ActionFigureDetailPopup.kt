@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
@@ -39,6 +41,8 @@ fun ActionFigureDetailPopup(
     onDismiss: () -> Unit,
     onFavoriteClick: () -> Unit,
     onPublicClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -83,17 +87,22 @@ fun ActionFigureDetailPopup(
                             )
                         }
                         IconButton(onClick = onPublicClick) {
-                            if (actionFigure.isPublic) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_public_globe),
-                                    contentDescription = "Ocultar do perfil público"
-                                )
-                            } else {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_no_public_globe),
-                                    contentDescription = "Exibir no perfil público"
-                                )
-                            }
+                            Icon(
+                                painter = painterResource(id = if (actionFigure.isPublic) R.drawable.ic_public_globe else R.drawable.ic_no_public_globe),
+                                contentDescription = if (actionFigure.isPublic) "Ocultar do perfil público" else "Exibir no perfil público"
+                            )
+                        }
+                        IconButton(onClick = onEditClick) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar"
+                            )
+                        }
+                        IconButton(onClick = onDeleteClick) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Deletar"
+                            )
                         }
                     }
                     Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {

@@ -13,7 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import br.pucpr.appdev.lucasfariassa.myactionfigures.R
 
 @Composable
 fun HomeScreen(
@@ -33,7 +35,7 @@ fun HomeScreen(
                 .padding(bottom = 32.dp)
         )
         Button(onClick = onAddActionFigure) {
-            Text("Adicionar um novo Action Figure")
+            Text(stringResource(R.string.addNewActionFigure))
         }
     }
 }

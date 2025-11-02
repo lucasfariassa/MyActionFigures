@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">My Action Figures</string>
+    <string name="app_name" translatable="false">My Action Figures</string>
+    <string name="addNewActionFigure">Add a new action figure</string>
 </resources>
