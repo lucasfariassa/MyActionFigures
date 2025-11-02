@@ -1,4 +1,37 @@
 <resources>
     <string name="app_name" translatable="false">My Action Figures</string>
     <string name="addNewActionFigure">Add a new action figure</string>
+    <string name="new_action_figure">New Action Figure</string>
+    <string name="edit_action_figure">Edit Action Figure</string>
+    <string name="home">Home</string>
+    <string name="cancel">Cancel</string>
+    <string name="name">Name</string>
+    <string name="work">Work</string>
+    <string name="brand">Brand</string>
+    <string name="description">Description</string>
+    <string name="purchase_value">Purchase Value (US$)</string>
+    <string name="purchase_date">Purchase Date</string>
+    <string name="select_date">Select date</string>
+    <string name="select_image">Select image</string>
+    <string name="save">Save</string>
+    <string name="action_figure_image">Imagem da Action Figure</string>
+    <string name="action_figures_total">Action Figures Total</string>
+    <string name="favorite">Favorite</string>
+    <string name="none_action_figure_favorited">None action figure favorited</string>
+    <string name="public_action_figures">Public Action Figures</string>
+    <string name="none_public_action_figure">None public action figure</string>
+    <string name="my_public_profile">My Public Profile</string>
+    <string name="delete">Delete</string>
+    <string name="confirme_deletion">Confirme Deletion</string>
+    <string name="delete_confirmation_message">Are you sure you want to delete this item? This action cannot be undone.</string>
+    <string name="my_figures">My Figures</string>
+    <string name="my_profile">My Profile</string>
+    <string name="close">Close</string>
+    <string name="edit">Edit</string>
+    <string name="favorite_action">Favorite</string>
+    <string name="unfavorite">Unfavorite</string>
+    <string name="display_on_public_profile">Display on public profile</string>
+    <string name="hide_from_public_profile">Hide from public profile</string>
+    <string name="value_with_money">Value: US$</string>
+    <string name="action_figure_photo">Action Figure Photo</string>
 </resources>

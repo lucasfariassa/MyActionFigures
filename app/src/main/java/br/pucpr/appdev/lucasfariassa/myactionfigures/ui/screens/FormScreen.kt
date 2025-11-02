@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package br.pucpr.appdev.lucasfariassa.myactionfigures.ui.screens
 
 import android.content.Context
@@ -15,20 +17,23 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import br.pucpr.appdev.lucasfariassa.myactionfigures.R
 import br.pucpr.appdev.lucasfariassa.myactionfigures.data.ActionFigure
+import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.theme.*
 import coil.compose.AsyncImage
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +50,7 @@ fun FormScreen(
     var brand by remember { mutableStateOf(actionFigure?.brand ?: "") }
     var description by remember { mutableStateOf(actionFigure?.description ?: "") }
     var purchasePrice by remember { mutableStateOf(actionFigure?.purchasePrice?.toString() ?: "") }
-    
+
     var imageUri by remember { mutableStateOf(actionFigure?.photoUrl?.toUri()) }
     var newImageSelected by remember { mutableStateOf(false) }
 
@@ -62,7 +67,9 @@ fun FormScreen(
     var selectedDate by remember { mutableStateOf(actionFigure?.purchaseDate ?: Date()) }
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
-    val title = if (actionFigure == null) "Novo Action Figure" else "Editar Action Figure"
+    val title = if (actionFigure == null) stringResource(R.string.new_action_figure) else stringResource(
+        R.string.edit_action_figure
+    )
 
     Scaffold(
         topBar = {
@@ -72,7 +79,7 @@ fun FormScreen(
                     IconButton(onClick = onCancel) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Cancelar"
+                            contentDescription = stringResource(R.string.cancel)
                         )
                     }
                 }
@@ -87,60 +94,67 @@ fun FormScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val fieldShape = RoundedCornerShape(16.dp)
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nome") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text(stringResource(R.string.name)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = fieldShape
             )
             OutlinedTextField(
                 value = work,
                 onValueChange = { work = it },
-                label = { Text("Obra") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text(stringResource(R.string.work)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = fieldShape
             )
             OutlinedTextField(
                 value = brand,
                 onValueChange = { brand = it },
-                label = { Text("Marca") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text(stringResource(R.string.brand)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = fieldShape
             )
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Descrição") },
+                label = { Text(stringResource(R.string.description)) },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
+                shape = fieldShape
             )
             OutlinedTextField(
                 value = purchasePrice,
                 onValueChange = { purchasePrice = it },
-                label = { Text("Valor da Compra") },
+                label = { Text(stringResource(R.string.purchase_value)) },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                shape = fieldShape
             )
-            
             OutlinedTextField(
                 value = dateFormat.format(selectedDate),
                 onValueChange = {},
-                label = { Text("Data da Compra") },
+                label = { Text(stringResource(R.string.purchase_date)) },
                 readOnly = true,
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.DateRange,
-                        contentDescription = "Selecionar Data",
+                        contentDescription = stringResource(R.string.select_date),
                         modifier = Modifier.clickable { showDatePicker = true }
                     )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = fieldShape
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            imageUri?.let {
+        imageUri?.let {
                 AsyncImage(
                     model = it,
-                    contentDescription = "Imagem do Action Figure",
+                    contentDescription = stringResource(R.string.action_figure_image),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
@@ -149,41 +163,55 @@ fun FormScreen(
                 )
             }
 
-            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                Text("Selecionar Imagem")
-            }
-
-            Button(onClick = {
-                var persistentPhotoUrl = actionFigure?.photoUrl
-
-                if (newImageSelected) {
-                    imageUri?.let { uri ->
-                        persistentPhotoUrl = saveImageToInternalStorage(context, uri)
-                    }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { imagePickerLauncher.launch("image/*") },
+                    colors = ButtonDefaults.buttonColors(BlueMAF)
+                ) {
+                    Text(stringResource(R.string.select_image))
                 }
 
-                val figureToSave = actionFigure?.copy(
-                    name = name,
-                    work = work,
-                    brand = brand,
-                    description = description,
-                    purchasePrice = purchasePrice.toFloatOrNull() ?: 0f,
-                    purchaseDate = selectedDate,
-                    photoUrl = persistentPhotoUrl
-                ) ?: ActionFigure(
-                    id = 0, // Room irá gerar o ID
-                    name = name,
-                    work = work,
-                    brand = brand,
-                    description = description,
-                    purchasePrice = purchasePrice.toFloatOrNull() ?: 0f,
-                    purchaseDate = selectedDate,
-                    photoUrl = persistentPhotoUrl
-                )
-                onSave(figureToSave)
-            }) {
-                Text("Salvar")
+                Button(
+                    onClick = {
+                        var persistentPhotoUrl = actionFigure?.photoUrl
+
+                        if (newImageSelected) {
+                            imageUri?.let { uri ->
+                                persistentPhotoUrl = saveImageToInternalStorage(context, uri)
+                            }
+                        }
+
+                        val figureToSave = actionFigure?.copy(
+                            name = name,
+                            work = work,
+                            brand = brand,
+                            description = description,
+                            purchasePrice = purchasePrice.toFloatOrNull() ?: 0f,
+                            purchaseDate = selectedDate,
+                            photoUrl = persistentPhotoUrl
+                        ) ?: ActionFigure(
+                            id = 0,
+                            name = name,
+                            work = work,
+                            brand = brand,
+                            description = description,
+                            purchasePrice = purchasePrice.toFloatOrNull() ?: 0f,
+                            purchaseDate = selectedDate,
+                            photoUrl = persistentPhotoUrl
+                        )
+
+                        onSave(figureToSave)
+                    },
+                    colors = ButtonDefaults.buttonColors(GreenMAF)
+                ) {
+                    Text(stringResource(R.string.save))
+                }
             }
+
         }
     }
 
@@ -194,8 +222,7 @@ fun FormScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val correctedMillis = millis + TimeZone.getDefault().getOffset(millis)
-                        selectedDate = Date(correctedMillis)
+                        selectedDate = Date(millis)
                     }
                     showDatePicker = false
                 }) {
@@ -204,12 +231,13 @@ fun FormScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
             DatePicker(state = datePickerState)
         }
+
     }
 }
 

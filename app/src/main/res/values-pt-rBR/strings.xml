@@ -2,4 +2,36 @@
 <resources>
     <string name="addNewActionFigure">Adicionar uma nova action figure</string>
     <string name="home">Página Inicial</string>
+    <string name="new_action_figure">Nova Action Figure</string>
+    <string name="edit_action_figure">Editar Action Figure</string>
+    <string name="cancel">Cancelar</string>
+    <string name="name">Nome</string>
+    <string name="work">Obra</string>
+    <string name="brand">Marca</string>
+    <string name="description">Descrição</string>
+    <string name="purchase_value">Valor de Compra (R$)</string>
+    <string name="purchase_date">Data de Compra</string>
+    <string name="select_date">Selecionar data</string>
+    <string name="select_image">Selecionar imagem</string>
+    <string name="save">Salvar</string>
+    <string name="action_figure_image">Imagem da Action Figure</string>
+    <string name="action_figures_total">Total de Action Figures</string>
+    <string name="favorite">Favorito(s)</string>
+    <string name="none_action_figure_favorited">Nenhuma action figure favoritada</string>
+    <string name="public_action_figures">Action Figures Públicas</string>
+    <string name="none_public_action_figure">Nenhuma action figure pública</string>
+    <string name="my_public_profile">Meu Perfil Público</string>
+    <string name="delete">Excluir</string>
+    <string name="confirme_deletion">Confirmar Exclusão</string>
+    <string name="delete_confirmation_message">Você tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</string>
+    <string name="my_figures">Minhas Figures</string>
+    <string name="my_profile">Meu Perfil</string>
+    <string name="close">Fechar</string>
+    <string name="edit">Editar</string>
+    <string name="hide_from_public_profile">Ocultar do perfil público</string>
+    <string name="display_on_public_profile">Exibir no perfil público</string>
+    <string name="unfavorite">Desfavoritar</string>
+    <string name="favorite_action">Favoritar</string>
+    <string name="value_with_money">"Valor: R$ "</string>
+    <string name="action_figure_photo">Foto da Action Figure</string>
 </resources>

@@ -17,8 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.res.stringResource
 import br.pucpr.appdev.lucasfariassa.myactionfigures.data.ActionFigure
 import br.pucpr.appdev.lucasfariassa.myactionfigures.data.AppDatabase
 import br.pucpr.appdev.lucasfariassa.myactionfigures.ui.components.DeleteConfirmationDialog
@@ -60,9 +59,9 @@ fun MyActionFiguresApp(viewModel: ActionFiguresViewModel) {
         FormScreen(
             actionFigure = editingActionFigure,
             onSave = { figure ->
-                if (editingActionFigure == null) { // Adicionando
+                if (editingActionFigure == null) { // ADD
                     viewModel.insert(figure)
-                } else { // Editando
+                } else { // EDIT
                     viewModel.update(figure)
                 }
                 isAddingOrEditing = false
@@ -76,12 +75,12 @@ fun MyActionFiguresApp(viewModel: ActionFiguresViewModel) {
     } else {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
-                AppDestinations.entries.forEach {
+                AppDestinations.entries.forEach { destination ->
                     item(
-                        icon = { Icon(it.icon, contentDescription = it.label) },
-                        label = { Text(it.label) },
-                        selected = it == currentDestination,
-                        onClick = { currentDestination = it }
+                        icon = { Icon(destination.icon, contentDescription = stringResource(id = destination.labelResId)) },
+                        label = { Text(stringResource(id = destination.labelResId)) },
+                        selected = destination == currentDestination,
+                        onClick = { currentDestination = destination }
                     )
                 }
             }
@@ -92,12 +91,12 @@ fun MyActionFiguresApp(viewModel: ActionFiguresViewModel) {
                         onAddActionFigure = { isAddingOrEditing = true },
                         modifier = Modifier.padding(innerPadding)
                     )
-                    AppDestinations.MYACTIONFIGURES -> MyActionFiguresScreen(
+                    AppDestinations.MY_FIGURES -> MyActionFiguresScreen(
                         actionFigures = actionFigures,
                         onActionFigureClick = { selectedActionFigure = it },
                         modifier = Modifier.padding(innerPadding)
                     )
-                    AppDestinations.PROFILE -> MyPublicProfileScreen(
+                    AppDestinations.MY_PROFILE -> MyPublicProfileScreen(
                         actionFigures = actionFigures,
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -142,10 +141,10 @@ fun MyActionFiguresApp(viewModel: ActionFiguresViewModel) {
 }
 
 enum class AppDestinations(
-    val label: String,
-    val icon: ImageVector,
+    val labelResId: Int,
+    val icon: ImageVector
 ) {
-    HOME("Home", Icons.Default.Home),
-    MYACTIONFIGURES("My Action Figures", Icons.Default.Favorite),
-    PROFILE("Public Profile", Icons.Default.AccountBox),
+    HOME(R.string.home, Icons.Default.Home),
+    MY_FIGURES(R.string.my_figures, Icons.Default.Favorite),
+    MY_PROFILE(R.string.my_profile, Icons.Default.AccountBox)
 }
